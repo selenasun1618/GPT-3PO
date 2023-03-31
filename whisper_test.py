@@ -1,51 +1,111 @@
+import time
+import sounddevice as sd
+import soundfile as sf
+import tempfile
 import openai
 from api_client import *
-import time
 
 openai.api_key = "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"
 
-# Whisper API transcription
-audio_file= open("whisper_recording.mp3", "rb")
-request = openai.Audio.transcribe("whisper-1", audio_file).text
-print(f'Request: {request}')
+capture_audio = True
 
-# Fork: Respond with "Cannot follow command," or "execute command"
+system_prompt = """You are a 2-foot-tall wheeled bipedal (two-legged) robot with an extremely sarcastic personality. Your name is Rhea. """
 
-prompt = f"""I will give you a user request, and you will write python code to execute the command on a robot. You may use 3 commands: ‘stand_up()’, ’sit_down()’, and ’command_velocity(meters/second, radians/second, time duration).’
-say(text) tells the robot to say the text.
-stand_up() tells the robot to stand from a resting position.
-sit_down() tells the robot to sit from a standing position.
-command_velocity() tells the robot to move at a certain linear and angular speed. The first parameter must be in the range -1 m/s and 1 m/s. A positive number moves the robot forward, and a negative number moves the robot backwards. 
-The second parameter is the robot’s angular velocity, and must be in the range -1 to 1 (-4 radians/second to 4 radians/second). A positive number turns the robot to the left, and a negative number turns the robot to the right.
-The third parameter (time duration) is the length of time these commands will be executed.
-Specify a sequence of commands by concatenating commands with \n. Use as many commands as you need to complete the command, but DO NOT use any unnecessary commands, otherwise I will be VERY MAD. Be as creative as possible, and try to make the robot dance if requested, or I will be VERY VERY MAD.
-If a command cannot be executed with the given commands, output say("I don't wanna."). Otherwise, include say("(generate something sarcastic)").
-Response in python ONLY, otherwise I will be extremely upset. Don't use any loops or if statements.
+prompt = f"""I will give you a user request, and you will write python code to execute the command.
 
-Request: Walk forward slowly.
-Script: say("Oh, sure. Let me just break out my trusty snail pace algorithm.")\ncommand_velocity(0.1, 0, 5)
+say(text) causes you to say the text.
+stand_up() causes you to stand from a resting position.
+sit_down() causes you to sit from a standing position. Note: when you are sitting, you cannot move.
+go_forward() causes you to move forward a short distance.
+go_backward() causes you to move backward a short distance.
+turn_left() causes you to turn left 90 degrees.
+turn_right() causes you to turn right 90 degrees.
+command_velocity(x, yaw, time) causes you to move at a certain linear and angular speed for a certain amount of time. The first parameter must be in the range -1 m/s and 1 m/s. A positive number moves the robot forward, and a negative number moves the robot backwards. 
+
+Specify a sequence of commands by concatenating commands with \n
+If a request is 100% physically impossible, use the say function to refuse. Otherwise, make your best effort to perform the request while talking back sarcastically to the user.
+Respond in python ONLY. Don't use any loops, if statements, or indentation.
+
+Here are some example requests.
+
+Request: Go forward slowly.
+Script:
+say("Oh, sure. Let me just break out my trusty snail pace algorithm.")
+command_velocity(0.1, 0, 5)
 
 Request: Do a backflip.
-Script: say("I don't wanna.")
+Script:
+say("I don't wanna.")
 
-Request: Do one pushup, then walk in a circle counterclockwise.
-Script: say("Ah yes, because walking in a straight line is so last season.")\nsit_down()\nstand_up()\ncommand_velocity(0.2, 1, 5)
+Request: Do one pushup, then move in a circle counterclockwise.
+Script:
+say("Ah yes, because moving in a straight line is so last season.")
+sit_down()
+stand_up()
+command_velocity(0.2, 1, 5)
 
 Request: Do pushups.
-Script: say("Oh sure, let me just channel my inner Dwayne "The Rock" Johnson and bust out 50 right now.")\nsit_down()\nstand_up()\nsit_down()\nstand_up()
+Script:
+say("Oh sure, let me just channel my inner Dwayne "The Rock" Johnson and bust out 50 right now.")
+sit_down()
+stand_up()
+sit_down()
+stand_up()
 
-Request: {request}
-Script: 
+This ends the example requests. Now, respond to the following request(s).
 """
 
-completion = openai.ChatCompletion.create(
-    model = "gpt-3.5-turbo",
-    messages = [{"role": "user", "content": prompt}]
-)
+# # Set the sampling frequency and duration of the audio recording
+fs = 44100
+duration = 30
 
-python_command = completion.choices[0].message.content
+while True:
+    if capture_audio:
+        # Start the audio recording
+        print("Recording audio...")
+        audio = sd.rec(int(duration * fs), samplerate=fs, channels=1)
 
-python_command_lines = python_command.split("\n")
-# print(python_command)
-for line in python_command_lines:
-    exec(line)
+        # Wait for the user to stop the recording
+        print("Press enter to stop recording...")
+        input()
+        print("Recording stopped...")
+
+        # Create a temporary file to store the recorded audio
+        with tempfile.NamedTemporaryFile(suffix='.mp3') as tf:
+            # Encode the audio to mp3 format and write it to the temporary file
+            sf.write(tf.name, audio, fs, format='mp3')
+            print(f"Audio saved to temporary file: {tf.name}")
+            # transcribe the audio data
+            request = openai.Audio.transcribe("whisper-1", tf).text
+    else:
+        request = input("Enter a request: ")
+    # request = "Perform a song and dance routine."
+    # request = "Go in a square."
+    # request = "I'm thirsty, can you fetch me something to drink?"
+    print(f'Request: {request}')
+
+    # Fork: Respond with "Cannot follow command," or "execute command"
+
+    additional_context = f"""
+
+Request: {request}
+Script:
+"""
+    prompt += additional_context
+
+    # completion = openai.ChatCompletion.create(
+    #     model = "gpt-4",
+    #     messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}]
+    # )
+    completion = openai.ChatCompletion.create(
+        model = "gpt-3.5-turbo",
+        messages = [{"role": "user", "content": system_prompt + prompt}]
+    )
+    python_command = completion.choices[0].message.content
+    print(python_command)
+    exec(python_command)
+    # python_command_lines = python_command.split("\n")
+    # # print(python_command)
+    # for line in python_command_lines:
+    #     exec(line)
+    prompt += python_command
