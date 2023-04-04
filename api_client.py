@@ -3,8 +3,6 @@ from time import sleep
 
 from elevenlabslib import *
 
-API_KEY = "2d876cea3d5fefadc247d37f6926daae"
-
 debug = False
 
 user = ElevenLabsUser(API_KEY)
