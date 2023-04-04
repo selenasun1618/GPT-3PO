@@ -5,7 +5,7 @@ import tempfile
 import openai
 from api_client import *
 
-openai.api_key = "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"
+openai.api_key = ""
 
 capture_audio = True
 
