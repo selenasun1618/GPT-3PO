@@ -40,12 +40,11 @@ def calculate_distance(tag_corners, tag_size, camera_intrinsics):
     # Use the pinhole camera model to calculate the distance
     fx = camera_intrinsics[0][0]
     fy = camera_intrinsics[1][1]
-    cx = camera_intrinsics[0][2]
-    cy = camera_intrinsics[1][2]
-    average_focal_length = (fx + fy) / 2.0
-    distance = (tag_size * average_focal_length) / (tag_pixel_size)
 
-    return distance
+    average_focal_length = (fx + fy) / 2.0
+    distance = (tag_size * average_focal_length) / (2 * tag_pixel_size)
+
+    return distance * 300 / 5
 
 # Create pipeline
 pipeline = dai.Pipeline()
@@ -135,9 +134,9 @@ with dai.Device(pipeline) as device:
             tag_corners = np.array([[topLeft.x, topLeft.y], [topRight.x, topRight.y], [bottomRight.x, bottomRight.y], [bottomLeft.x, bottomLeft.y]])
             distance = calculate_distance(tag_corners, TAG_SIZE, intrinsics)
 
-            if distance < COLLISION_THRESHOLD:
-                # Send collision message to the robot
-                socket.send_string("collision")
+            # if distance < COLLISION_THRESHOLD:
+            #     # Send collision message to the robot
+            #     socket.send_string("collision")
             print("Distance: {:.2f}mm".format(distance * 1000))
 
             idStr = "ID: " + str(aprilTag.id) + " z: {:.2f}mm".format(distance * 1000)
