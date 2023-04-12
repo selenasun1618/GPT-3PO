@@ -7,8 +7,18 @@ import time
 import math
 import numpy as np
 
+import zmq
+
 TAG_SIZE = 0.03
 COLLISION_THRESHOLD = 0.1
+SERVER_IP = "127.0.0.1"
+
+context = zmq.Context()
+
+#  Socket to talk to server
+print("Connecting to server…")
+socket = context.socket(zmq.REQ)
+socket.connect("tcp://{}:5556".format(SERVER_IP))
 
 def calculate_distance(tag_corners, tag_size, camera_intrinsics):
     """
@@ -125,8 +135,9 @@ with dai.Device(pipeline) as device:
             tag_corners = np.array([[topLeft.x, topLeft.y], [topRight.x, topRight.y], [bottomRight.x, bottomRight.y], [bottomLeft.x, bottomLeft.y]])
             distance = calculate_distance(tag_corners, TAG_SIZE, intrinsics)
 
-            # if distance < COLLISION_THRESHOLD:
-                # print("Collision detected!")
+            if distance < COLLISION_THRESHOLD:
+                # Send collision message to the robot
+                socket.send_string("collision")
             print("Distance: {:.2f}mm".format(distance * 1000))
 
             idStr = "ID: " + str(aprilTag.id) + " z: {:.2f}mm".format(distance * 1000)

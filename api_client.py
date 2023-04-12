@@ -4,7 +4,7 @@ from time import sleep
 from elevenlabslib import *
 
 debug = False
-
+SERVER_IP = "127.0.0.1"
 user = ElevenLabsUser(API_KEY)
 voice = user.get_voices_by_name("Rachel")[0]  # This is a list because multiple voices can have the same name
 
@@ -13,7 +13,7 @@ context = zmq.Context()
 #  Socket to talk to server
 print("Connecting to server…")
 socket = context.socket(zmq.REQ)
-socket.connect("tcp://192.168.1.100:5555")
+socket.connect("tcp://{}:5555".format(SERVER_IP))
 
 def stand_up():
     send_request(b"stand")
