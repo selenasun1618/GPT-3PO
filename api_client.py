@@ -30,10 +30,10 @@ def go_backward():
     command_velocity(-1.0, 0, 1.0)
 
 def turn_left():
-    command_velocity(0, -1.3, 1.0)
+    command_velocity(0, -1.57, 1.0)
 
-def turn_right():  
-    command_velocity(0, 1.3, 1.0)
+def turn_right():
+    command_velocity(0, 1.57, 1.0)
 
 def command_velocity(x, yaw, time):
     send_request(bytes("move_{}_{}_{}".format(x, yaw, time), "utf-8"))
