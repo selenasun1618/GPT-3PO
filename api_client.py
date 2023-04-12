@@ -50,4 +50,4 @@ def send_request(request):
         print(f"Received reply {request} [ {message} ]")
 
 def say(text):
-    voice.generate_and_stream_audio(text)
+    voice.generate_and_play_audio(text, playInBackground=False)

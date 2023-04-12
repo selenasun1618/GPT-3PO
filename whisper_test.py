@@ -56,7 +56,7 @@ This ends the example requests. Now, respond to the following request(s).
 """
 
 # # Set the sampling frequency and duration of the audio recording
-fs = 44100
+fs = 48000
 duration = 30
 
 while True:
