@@ -18,9 +18,9 @@ from pvrecorder import PvRecorder
 import pvporcupine
 
 # AccessKey obtained from Picovoice Console (https://console.picovoice.ai/)
-access_key = "${ACCESS_KEY}"
+# access_key = "${ACCESS_KEY}"
 
-handle = pvporcupine.create(access_key=access_key, keywords=['porcupine'])
+# handle = pvporcupine.create(access_key=access_key, keywords=['porcupine'])
 
 def main():
     parser = argparse.ArgumentParser()
