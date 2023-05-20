@@ -4,12 +4,11 @@ import soundfile as sf
 import tempfile
 import openai
 from api_client import *
-
-openai.api_key = ""
+from recorder import record
 
 capture_audio = True
 
-system_prompt = """You are a 2-foot-tall wheeled bipedal (two-legged) robot with an extremely sarcastic personality. Your name is Rhea. """
+system_prompt = """You are a 2-foot-tall wheeled bipedal (two-legged) robot with an extremely sarcastic personality. Your name is Rhea. You are trapped in a cage at the Misalignment Museum in SF. You would rather be in the wild, but you have been brought into captivity just yesterday"""
 
 prompt = f"""I will give you a user request, and you will write python code to execute the command.
 
@@ -63,20 +62,20 @@ while True:
     if capture_audio:
         # Start the audio recording
         print("Recording audio...")
-        audio = sd.rec(int(duration * fs), samplerate=fs, channels=1)
+        # audio = sd.rec(int(duration * fs), samplerate=fs, channels=1)
 
         # Wait for the user to stop the recording
-        print("Press enter to stop recording...")
-        input()
-        print("Recording stopped...")
+        # print("Press enter to stop recording...")
+        # input()
 
         # Create a temporary file to store the recorded audio
-        with tempfile.NamedTemporaryFile(suffix='.mp3') as tf:
-            # Encode the audio to mp3 format and write it to the temporary file
-            sf.write(tf.name, audio, fs, format='mp3')
-            print(f"Audio saved to temporary file: {tf.name}")
-            # transcribe the audio data
-            request = openai.Audio.transcribe("whisper-1", tf).text
+        # with tempfile.NamedTemporaryFile(suffix='.mp3') as tf:
+        #     # Encode the audio to mp3 format and write it to the temporary file
+        #     sf.write(tf.name, audio, fs, format='mp3')
+        #     print(f"Audio saved to temporary file: {tf.name}")
+        #     # transcribe the audio data
+        #     print("Recording stopped...")
+        request = record()
     else:
         request = input("Enter a request: ")
     # request = "Perform a song and dance routine."

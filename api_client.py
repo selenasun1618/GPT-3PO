@@ -1,10 +1,16 @@
 import zmq
 from time import sleep
 
+import os
 from elevenlabslib import *
 
 debug = False
+API_KEY = os.getenv("ELEVENLABS_API_KEY")
 SERVER_IP = "127.0.0.1"
+
+X_VELOCITY = 0.5
+YAW_VELOCITY = 1.57
+
 user = ElevenLabsUser(API_KEY)
 voice = user.get_voices_by_name("Rachel")[0]  # This is a list because multiple voices can have the same name
 
@@ -24,16 +30,16 @@ def sit_down():
     sleep(1)
 
 def go_forward():
-    command_velocity(1.0, 0, 1.0)
+    command_velocity(X_VELOCITY, 0, 1.0)
 
 def go_backward():
-    command_velocity(-1.0, 0, 1.0)
+    command_velocity(-X_VELOCITY, 0, 1.0)
 
 def turn_left():
-    command_velocity(0, -1.57, 1.0)
+    command_velocity(0, -YAW_VELOCITY, 1.0)
 
 def turn_right():
-    command_velocity(0, 1.57, 1.0)
+    command_velocity(0, YAW_VELOCITY, 1.0)
 
 def command_velocity(x, yaw, time):
     send_request(bytes("move_{}_{}_{}".format(x, yaw, time), "utf-8"))
@@ -49,5 +55,5 @@ def send_request(request):
         message = socket.recv()
         print(f"Received reply {request} [ {message} ]")
 
-def say(text):
-    voice.generate_and_play_audio(text, playInBackground=False)
+def say(text, blocking=True):
+    voice.generate_and_play_audio(text, playInBackground=not blocking)

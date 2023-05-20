@@ -1,0 +1,14 @@
+[Unit]
+Description=Collision monitor service
+After=network.target
+
+[Service]
+ExecStart=/home/pi/mambaforge/bin/python collision_monitor.py
+WorkingDirectory=/home/pi/GPT-3PO
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target

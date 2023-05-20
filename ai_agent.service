@@ -1,0 +1,10 @@
+[Unit]
+Description=script
+
+[Service]
+User=pi
+WorkingDirectory=~
+ExecStart=/home/pi/GPT-3PO/startup.sh
+
+[Install]
+WantedBy=default.target
