@@ -2,17 +2,16 @@ import zmq
 from time import sleep
 
 import os
-from elevenlabslib import *
 
-debug = False
-API_KEY = os.getenv("ELEVENLABS_API_KEY")
+from elevenlabs import generate, stream, set_api_key
+set_api_key(os.getenv("ELEVENLABS_API_KEY"))
+
+debug = True
 SERVER_IP = "127.0.0.1"
 
 X_VELOCITY = 0.5
 YAW_VELOCITY = 1.57
 
-user = ElevenLabsUser(API_KEY)
-voice = user.get_voices_by_name("Rachel")[0]  # This is a list because multiple voices can have the same name
 
 context = zmq.Context()
 
@@ -56,4 +55,11 @@ def send_request(request):
         print(f"Received reply {request} [ {message} ]")
 
 def say(text, blocking=True):
-    voice.generate_and_play_audio(text, playInBackground=not blocking)
+    audio_stream = generate(
+        text=text,
+        voice="Rachel",
+        stream=True
+    )
+
+    stream(audio_stream)
+

@@ -92,19 +92,26 @@ Script:
 """
     prompt += additional_context
 
-    completion = openai.ChatCompletion.create(
-        model = "gpt-4",
-        messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}]
-    )
-    #completion = openai.ChatCompletion.create(
-    #    model = "gpt-3.5-turbo",
-    #    messages = [{"role": "user", "content": system_prompt + prompt}]
-    #)
-    python_command = completion.choices[0].message.content
-    print(python_command)
-    exec(python_command)
-    # python_command_lines = python_command.split("\n")
-    # # print(python_command)
-    # for line in python_command_lines:
-    #     exec(line)
-    prompt += python_command
+    # completion = openai.ChatCompletion.create(
+    #     model = "gpt-4",
+    #     messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}]
+    # )
+    python_commands = []
+    python_command = ""
+    for chunk in openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "system", "content": system_prompt},
+                  {"role": "user", "content": prompt}],
+        stream=True,
+    ):
+        content = chunk["choices"][0].get("delta", {}).get("content")
+        if content is not None:
+            python_command += content
+            # Detect if the content contains a newline character
+            if "\n" in content:
+                # Execute this line of code
+                print(python_command)
+                exec(python_command)
+                python_commands.append(python_command)
+                python_command = ""
+    prompt += "".join(python_commands)
